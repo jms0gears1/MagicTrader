@@ -1,52 +1,53 @@
-import java.util.HashMap;
-import java.util.Set;
+import java.util.ArrayList;
 
 
 public class Collection {
-	private HashMap<String, Integer> collection;
+	ArrayList<Card> collection = new ArrayList<Card>();
 	
-	public Collection(){
-		collection = new HashMap<String, Integer>();
+	public void addCard(Card c){
+		if(contains(c.getName())){
+			int index = indexOf(c.getName());
+			Card card = collection.get(index);
+			collection.remove(index);
+			
+			card.setNumber_of_cards(card.getNumber_of_cards() + c.getNumber_of_cards());
+			
+			collection.add(index, card);
+		}else{
+			collection.add(c);
+		}
 	}
 	
-	public void addCard(String cardName, int number){
-		if(collection.containsKey(cardName)){
-			int curNum = collection.get(cardName);
-			collection.put(cardName, new Integer(curNum+number));
-		}else
-			collection.put(cardName, new Integer(number));
+	public void printCollection(){
+		for(Card c: collection)
+			System.out.println(c.getName());
 	}
 	
-	public String getCollection(){
-		Set<String> keys = collection.keySet();
-		String returnString = "";
+	public void removeCard(Card c){
+		int index = indexOf(c.getName());
+		collection.remove(index);
+	}
+	
+	public void removeCard(Card c, int n){
+		int index = indexOf(c.getName());
 		
-		for(String s:keys){
-			returnString += s+":"+collection.get(s);
-			returnString += "\n";
+		Card card = collection.get(index);
+		card.setNumber_of_cards(card.getNumber_of_cards() - n);
+		
+		collection.remove(index);
+		collection.add(index, card);
+	}
+	
+	public int indexOf(String name){
+		for(int i = 0; i < collection.size(); ++i){
+			if(collection.get(i).getName().equals(name))
+				return i;
 		}
 		
-		return returnString;
+		return -1;
 	}
 	
-	public void removeCard(String cardName){
-		if(collection.containsKey(cardName)){
-			this.removeCard(cardName, Integer.MAX_VALUE);
-		}
-	}
-	
-	public void removeCard(String cardName, int number){
-		if(collection.containsKey(cardName)){
-			int curNum = collection.get(cardName);
-			if(number > curNum)
-				collection.remove(cardName);
-			else
-				collection.put(cardName, curNum-number);
-		}
-	}
-	
-	public void dumpCards(){
-		if(!collection.isEmpty())
-			collection.clear();
+	public boolean contains(String name){
+		return (indexOf(name)!=-1);
 	}
 }

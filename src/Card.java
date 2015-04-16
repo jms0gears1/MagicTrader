@@ -1,3 +1,4 @@
+
 public class Card {
 	private String name;
 	private String mana_cost;
@@ -12,6 +13,16 @@ public class Card {
 	private String card_number;
 	private String artist;
 	private String request_time;
+	
+	public int getNumber_of_cards() {
+		return number_of_cards;
+	}
+
+	public void setNumber_of_cards(int number_of_cards) {
+		this.number_of_cards = number_of_cards;
+	}
+
+	private int number_of_cards;
 
 	public String getName() {
 		return name;

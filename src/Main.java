@@ -95,7 +95,11 @@ public class Main extends Subscriber<Card> {
 		System.out.println("add {card}");
 		System.out.println("remove {card}");
 		System.out.println("print collection");
+		System.out.println("find white");
 		System.out.println("find blue");
+		System.out.println("find red");
+		System.out.println("find black");
+		System.out.println("find green");
 		System.out.println("exit");
 	}
 

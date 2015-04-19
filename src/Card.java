@@ -12,6 +12,10 @@ public class Card {
 	private String rarity;
 	private String card_number;
 	private String artist;
+	private String error;
+	public String getError() {
+		return error;
+	}
 	private String request_time;
 	
 	public int getNumber_of_cards() {

@@ -26,7 +26,7 @@ public class CardFactory {
 
 	public static Observable<Card> queryCard(String cardName) {
 		CardInfoService service = restAdapter.create(CardInfoService.class);
-		return service.getCardInfo(cardName);
+		return service.getCardInfo(cardName.replace(" ", "%20"));
 	}
 
 	public interface CardInfoService {

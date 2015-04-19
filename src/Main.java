@@ -42,6 +42,8 @@ public class Main extends Subscriber<Card> {
 					public void onNext(Card card) {
 						if(card.getError()==null)
 							collection.addCard(card);
+						else 
+							System.out.println(card.getError());
 					}
 					
 				});
@@ -60,6 +62,8 @@ public class Main extends Subscriber<Card> {
 					public void onNext(Card card) {
 						if(card.getError()==null)
 							collection.removeCard(card);
+						else 
+							System.out.println(card.getError());
 					}
 					
 				});

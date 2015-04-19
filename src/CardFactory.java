@@ -1,6 +1,8 @@
 import retrofit.RestAdapter;
 import retrofit.http.GET;
 import retrofit.http.Query;
+import rx.Observable;
+import rx.Observable.Transformer;
 
 public class CardFactory {
 
@@ -11,7 +13,7 @@ public class CardFactory {
 
 	private CardFactory() {}
 
-	public static Card getCard(String card) {
+	public static Observable<Card> getCard(String card) {
 		restAdapter = new RestAdapter.Builder()
 			.setEndpoint(API_ENDPOINT)
 			.build();
@@ -22,13 +24,13 @@ public class CardFactory {
 		return null;
 	}
 
-	public static Card queryCard(String cardName) {
+	public static Observable<Card> queryCard(String cardName) {
 		CardInfoService service = restAdapter.create(CardInfoService.class);
 		return service.getCardInfo(cardName);
 	}
 
 	public interface CardInfoService {
 		@GET(API_GET_CARD)
-		Card getCardInfo(@Query("name") String cardName);
+		Observable<Card> getCardInfo(@Query("name") String cardName);
 	}
 }

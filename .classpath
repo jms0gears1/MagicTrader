@@ -8,5 +8,6 @@
 			<attribute name="javadoc_location" value="http://square.github.io/retrofit/javadoc/index.html"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="libs/rxjava-1.0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

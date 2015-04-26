@@ -11,7 +11,7 @@ public class Main {
 
 	private String[] commands = { "add", "remove", "print", "find white",
 			"find blue", "find black", "find red", "find green", "exit",
-			"help", "price"};
+			"help", "price" };
 
 	public static void main(String[] args) {
 		Main main = new Main();
@@ -26,120 +26,70 @@ public class Main {
 		while (true) {
 			System.out
 					.println("Enter Command (say help for list of commands): ");
+
 			String cmd = input.nextLine();
 
-			if (cmd.length() >= commands[0].length()
-					&& cmd.substring(0, commands[0].length()).equalsIgnoreCase(
-							commands[0])) {
+			switch (selectCommand(cmd)) {
 
-				String cardName = cmd.substring(commands[0].length() + 1,
-						cmd.length());
-				CardFactory.getCard(cardName).observeOn(Schedulers.newThread())
-						.subscribe(new Subscriber<Card>() {
-
-							@Override
-							public void onCompleted() {
-								this.unsubscribe();
-							}
-
-							@Override
-							public void onError(Throwable arg0) {
-							}
-
-							@Override
-							public void onNext(Card card) {
-								if (card != null)
-									pricer.getPrice(card).subscribe(
-											new PriceSubscriber());
-							}
-
-						});
-
-			} else if (cmd.length() >= commands[1].length()
-					&& cmd.substring(0, commands[1].length()).equalsIgnoreCase(
-							commands[1])) {
-
-				String cardName = cmd.substring(commands[1].length() + 1,
-						cmd.length());
-				CardFactory.getCard(cardName).observeOn(Schedulers.newThread())
-						.subscribe(new Subscriber<Card>() {
-
-							@Override
-							public void onCompleted() {
-								this.unsubscribe();
-							}
-
-							@Override
-							public void onError(Throwable arg0) {
-							}
-
-							@Override
-							public void onNext(Card card) {
-								collection.removeCard(card);
-							}
-
-						});
-
-				// remove card
-
-			} else if (cmd.length() >= commands[2].length()
-					&& cmd.substring(0, commands[2].length()).equalsIgnoreCase(
-							commands[2])) {
-
+			case 0:
+				CardFactory.getCard(getAfterCommand(cmd, commands[0]))
+						.observeOn(Schedulers.newThread())
+						.subscribe(new AddSubscriber());
+				break;
+			case 1:
+				CardFactory.getCard(getAfterCommand(cmd, commands[1]))
+						.observeOn(Schedulers.newThread())
+						.subscribe(new RemoveSubscriber());
+				break;
+			case 2:
 				collection.printCollection();
-
-			} else if (cmd.length() >= commands[3].length()
-					&& cmd.substring(0, commands[3].length()).equalsIgnoreCase(
-							commands[3])) {
-
-				// find white
-
-			} else if (cmd.length() >= commands[4].length()
-					&& cmd.substring(0, commands[4].length()).equalsIgnoreCase(
-							commands[4])) {
-
-				// find blue
-
-			} else if (cmd.length() >= commands[5].length()
-					&& cmd.substring(0, commands[5].length()).equalsIgnoreCase(
-							commands[5])) {
-
-				// find red
-
-			} else if (cmd.length() >= commands[6].length()
-					&& cmd.substring(0, commands[6].length()).equalsIgnoreCase(
-							commands[6])) {
-
-				// find black
-
-			} else if (cmd.length() >= commands[7].length()
-					&& cmd.substring(0, commands[7].length()).equalsIgnoreCase(
-							commands[7])) {
-
-				// find green
-
-			} else if (cmd.length() >= commands[8].length()
-					&& cmd.substring(0, commands[8].length()).equalsIgnoreCase(
-							commands[8])) {
-
+				break;
+			case 3:
+				break;
+			case 4:
+				break;
+			case 5:
+				break;
+			case 6:
+				break;
+			case 7:
+				break;
+			case 8:
 				System.exit(0);
-
-			} else if (cmd.length() >= commands[9].length()
-					&& cmd.substring(0, commands[9].length()).equalsIgnoreCase(
-							commands[9])) {
-
-				command();
-			} else if (cmd.length() >= commands[10].length()
-					&& cmd.substring(0, commands[10].length())
-							.equalsIgnoreCase(commands[10])) {
-
+				break;
+			case 9:
+				help();
+				break;
+			case 10:
 				collection.priceCollection();
+				break;
+			default:
+				break;
 			}
 		}
 	}
 
-	public void command() {
-		for(String s: commands)
+	public int selectCommand(String cmd) {
+		for (int i = 0; i < commands.length; i++)
+			if (getCommand(cmd, commands[i]))
+				return i;
+
+		return -1;
+	}
+
+	public boolean getCommand(String input, String command) {
+		return input.length() >= command.length()
+				&& input.substring(0, command.length()).equalsIgnoreCase(
+						command);
+	}
+
+	public String getAfterCommand(String input, String command) {
+		return input.substring(command.length() + 1, input.length());
+	}
+	
+
+	public void help() {
+		for (String s : commands)
 			System.out.println(s);
 	}
 
@@ -147,8 +97,7 @@ public class Main {
 
 		@Override
 		public void onCompleted() {
-			// TODO Auto-generated method stub
-
+			this.unsubscribe();
 		}
 
 		@Override
@@ -160,6 +109,44 @@ public class Main {
 		@Override
 		public void onNext(Card card) {
 			collection.addCard(card);
+		}
+
+	}
+
+	private class AddSubscriber extends Subscriber<Card> {
+
+		@Override
+		public void onCompleted() {
+			this.unsubscribe();
+		}
+
+		@Override
+		public void onError(Throwable arg0) {
+		}
+
+		@Override
+		public void onNext(Card card) {
+			if (card != null)
+				pricer.getPrice(card).subscribe(new PriceSubscriber());
+		}
+
+	}
+
+	private class RemoveSubscriber extends Subscriber<Card> {
+
+		@Override
+		public void onCompleted() {
+			this.unsubscribe();
+		}
+
+		@Override
+		public void onError(Throwable arg0) {
+		}
+
+		@Override
+		public void onNext(Card card) {
+			if (card != null)
+				collection.removeCard(card);
 		}
 
 	}

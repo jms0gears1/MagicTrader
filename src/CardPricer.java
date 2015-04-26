@@ -19,6 +19,13 @@ public class CardPricer {
 	HashMap<String, String> cards = new HashMap<String, String>();
 
 	public CardPricer() {
+		getExpansionList();
+	}
+	
+	/**
+	 * Gets an ArrayList<String> containing every expansion name	
+	 */
+	private void getExpansionList(){
 		getAllExpansionNames().observeOn(Schedulers.newThread()).subscribe(
 				new Subscriber<ArrayList<String>>() {
 
@@ -44,6 +51,10 @@ public class CardPricer {
 				});
 	}
 
+	/**
+	 * Gets every card and matches it to a set for easy price look up later. 
+	 * @param expansions - list of names of all Mtg Expansions currently out
+	 */
 	private void matchCards(ArrayList<String> expansions) {
 		matchCardsWithSets(expansions).observeOn(Schedulers.newThread())
 				.subscribe(new Subscriber<HashMap<String, String>>() {
@@ -67,7 +78,12 @@ public class CardPricer {
 
 				});
 	}
-
+	
+	/**
+	 * Takes a card object and gets the {High, Median, Low} price values for card
+	 * @param card - Card object that needs pricing information
+	 * @return	   Card Object with pricing information
+	 */
 	public Observable<Card> getPrice(final Card card) {
 		return Observable.create(new Observable.OnSubscribe<Card>() {
 
@@ -77,6 +93,7 @@ public class CardPricer {
 
 			@Override
 			public void call(Subscriber<? super Card> sub) {
+				
 				try {
 					set = cards.get(card.getName().toLowerCase());
 					String url = CARD_PRICE_GUIDE + set;
@@ -87,15 +104,16 @@ public class CardPricer {
 
 				if (doc != null) {
 					for (Element tr : doc.select("table").get(2).select("tr")) {
-						String name = tr.select("td").get(0).text().replace("\u00a0", "");
-						if(name.equalsIgnoreCase(card.getName())){
+						String name = tr.select("td").get(0).text()
+								.replace("\u00a0", "");
+						if (name.equalsIgnoreCase(card.getName())) {
 							prices[0] = tr.select("td").get(5).text();
 							prices[1] = tr.select("td").get(6).text();
 							prices[2] = tr.select("td").get(7).text();
 							break;
 						}
 					}
-					
+
 					card.setPrice(prices);
 					sub.onNext(card);
 					if (!sub.isUnsubscribed())
@@ -109,16 +127,24 @@ public class CardPricer {
 		});
 	}
 
+	/**
+	 * Asynchronously matches cards with sets
+	 * @param expansions - expansions to grab cards names from
+	 * @return	 a HashMap of Card Name, to expansion sets
+	 */
 	public Observable<HashMap<String, String>> matchCardsWithSets(
 			final ArrayList<String> expansions) {
 		return Observable
 				.create(new Observable.OnSubscribe<HashMap<String, String>>() {
+					
+					HashMap<String, String> temp;
+					Document doc = null;
 
 					@Override
 					public void call(
 							Subscriber<? super HashMap<String, String>> sub) {
-						HashMap<String, String> temp = new HashMap<String, String>();
-						Document doc = null;
+						
+						temp = new HashMap<String, String>();
 
 						for (String s : expansions) {
 							try {
@@ -131,7 +157,9 @@ public class CardPricer {
 							if (doc != null) {
 								for (Element tr : doc.select("table").get(2)
 										.select("tr")) {
-									temp.put(tr.select("td").get(0).text().replace("\u00a0", "").toLowerCase(), s.toLowerCase());
+									temp.put(tr.select("td").get(0).text()
+											.replace("\u00a0", "")
+											.toLowerCase(), s.toLowerCase());
 								}
 
 							} else {
@@ -140,22 +168,30 @@ public class CardPricer {
 									sub.onCompleted();
 							}
 						}
-						
+
 						sub.onNext(temp);
 						if (!sub.isUnsubscribed())
 							sub.onCompleted();
 					}
 				});
 	}
-
+	
+	/**
+	 * Get all expansion names
+	 * @return an ArrayList<String> of expansion names
+	 */
 	public Observable<ArrayList<String>> getAllExpansionNames() {
 		return Observable
 				.create(new Observable.OnSubscribe<ArrayList<String>>() {
+					
+					ArrayList<String> temp;
+					Document doc;
 
 					@Override
 					public void call(Subscriber<? super ArrayList<String>> sub) {
-						ArrayList<String> temp = new ArrayList<String>();
-						Document doc = null;
+						
+						temp = new ArrayList<String>();
+						doc = null;
 
 						try {
 							doc = Jsoup.connect(PRICE_GUIDE).get();
@@ -170,6 +206,7 @@ public class CardPricer {
 									temp.add(link.text());
 								}
 							}
+							
 							sub.onNext(temp);
 							if (!sub.isUnsubscribed())
 								sub.onCompleted();

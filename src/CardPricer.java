@@ -43,14 +43,6 @@ public class CardPricer {
 
 				});
 	}
-	
-	public void printSets(){
-		Set<String> keys = cards.keySet();
-		
-		for(String key : keys)
-			if(key.trim().equalsIgnoreCase("animar, soul of elements"))
-				System.out.println("matched");
-	}
 
 	private void matchCards(ArrayList<String> expansions) {
 		matchCardsWithSets(expansions).observeOn(Schedulers.newThread())

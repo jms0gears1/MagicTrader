@@ -11,7 +11,7 @@ public class Main {
 
 	private String[] commands = { "add", "remove", "print", "find white",
 			"find blue", "find black", "find red", "find green", "exit",
-			"help", "price", "sets"};
+			"help", "price"};
 
 	public static void main(String[] args) {
 		Main main = new Main();
@@ -134,26 +134,13 @@ public class Main {
 							.equalsIgnoreCase(commands[10])) {
 
 				collection.priceCollection();
-			} else if (cmd.length() >= commands[11].length()
-					&& cmd.substring(0, commands[11].length())
-							.equalsIgnoreCase(commands[11])) {
-				
-				System.out.println("hello");
-				pricer.printSets();
 			}
 		}
 	}
 
 	public void command() {
-		System.out.println("add {card}");
-		System.out.println("remove {card}");
-		System.out.println("print");
-		System.out.println("find white");
-		System.out.println("find blue");
-		System.out.println("find red");
-		System.out.println("find black");
-		System.out.println("find green");
-		System.out.println("exit");
+		for(String s: commands)
+			System.out.println(s);
 	}
 
 	private class PriceSubscriber extends Subscriber<Card> {

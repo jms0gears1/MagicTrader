@@ -13,6 +13,16 @@ public class Card {
 	private String card_number;
 	private String artist;
 	private String error;
+	private String[] price;
+	
+	public String[] getPrice() {
+		return price;
+	}
+
+	public void setPrice(String[] price) {
+		this.price = price;
+	}
+
 	public String getError() {
 		return error;
 	}

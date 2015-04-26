@@ -23,6 +23,19 @@ public class Collection {
 			System.out.println(c.getName());
 	}
 	
+	public void priceCollection(){
+		float price = 0;
+		
+		for(Card c : collection){
+			String[] prices = c.getPrice();
+			
+			if(prices!=null)
+				price += Float.parseFloat(prices[1].replace("$", "").replace("\u00a0", ""));
+		}
+		
+		System.out.println("Price of collection : " + price);
+	}
+	
 	public void removeCard(Card c){
 		int index = indexOf(c.getName());
 		collection.remove(index);

@@ -23,6 +23,16 @@ public class Collection {
 		}
 	}
 
+	public ArrayList<Card> getCollection() {
+		return collection;
+	}
+
+
+	public void setCollection(ArrayList<Card> collection) {
+		this.collection = collection;
+	}
+
+
 	/**
 	 * prints the entire collection of cards with the cards price
 	 */

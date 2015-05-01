@@ -1,11 +1,11 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -19,70 +19,30 @@ public class CardPricer {
 	HashMap<String, String> cards = new HashMap<String, String>();
 
 	public CardPricer() {
-		getExpansionList();
+		// getExpansionList();
+		getExpoLambdas();
 	}
-	
+
 	/**
-	 * Gets an ArrayList<String> containing every expansion name	
+	 * Gets an ArrayList<String> containing every expansion name
 	 */
-	private void getExpansionList(){
-		getAllExpansionNames().observeOn(Schedulers.newThread()).subscribe(
-				new Subscriber<ArrayList<String>>() {
-
-					@Override
-					public void onCompleted() {
-						if (expansions != null) {
-							matchCards(expansions);
-							this.unsubscribe();
-						}
-					}
-
-					@Override
-					public void onError(Throwable arg0) {
-						// TODO Auto-generated method stub
-
-					}
-
-					@Override
-					public void onNext(ArrayList<String> arg0) {
-						expansions = arg0;
-					}
-
-				});
+	private void getExpoLambdas() {
+		getAllExpansionNames()
+		.observeOn(Schedulers.newThread())
+		.flatMap(sets -> matchCardsWithSetsLambdas(sets))
+		.subscribe(cardSets -> {
+			cards = cardSets;
+			System.out.println("data loaded");
+			});
 	}
 
 	/**
-	 * Gets every card and matches it to a set for easy price look up later. 
-	 * @param expansions - list of names of all Mtg Expansions currently out
-	 */
-	private void matchCards(ArrayList<String> expansions) {
-		matchCardsWithSets(expansions).observeOn(Schedulers.newThread())
-				.subscribe(new Subscriber<HashMap<String, String>>() {
-
-					@Override
-					public void onCompleted() {
-						System.out.println("finished loading data");
-						this.unsubscribe();
-					}
-
-					@Override
-					public void onError(Throwable arg0) {
-						// TODO Auto-generated method stub
-
-					}
-
-					@Override
-					public void onNext(HashMap<String, String> arg0) {
-						cards = arg0;
-					}
-
-				});
-	}
-	
-	/**
-	 * Takes a card object and gets the {High, Median, Low} price values for card
-	 * @param card - Card object that needs pricing information
-	 * @return	   Card Object with pricing information
+	 * Takes a card object and gets the {High, Median, Low} price values for
+	 * card
+	 * 
+	 * @param card
+	 *            - Card object that needs pricing information
+	 * @return Card Object with pricing information
 	 */
 	public Observable<Card> getPrice(final Card card) {
 		return Observable.create(new Observable.OnSubscribe<Card>() {
@@ -93,7 +53,7 @@ public class CardPricer {
 
 			@Override
 			public void call(Subscriber<? super Card> sub) {
-				
+
 				try {
 					set = cards.get(card.getName().toLowerCase());
 					String url = CARD_PRICE_GUIDE + set;
@@ -126,70 +86,55 @@ public class CardPricer {
 			}
 		});
 	}
-
-	/**
-	 * Asynchronously matches cards with sets
-	 * @param expansions - expansions to grab cards names from
-	 * @return	 a HashMap of Card Name, to expansion sets
-	 */
-	public Observable<HashMap<String, String>> matchCardsWithSets(
-			final ArrayList<String> expansions) {
-		return Observable
-				.create(new Observable.OnSubscribe<HashMap<String, String>>() {
-					
-					HashMap<String, String> temp;
-					Document doc = null;
-
-					@Override
-					public void call(
-							Subscriber<? super HashMap<String, String>> sub) {
-						
-						temp = new HashMap<String, String>();
-
-						for (String s : expansions) {
-							try {
-								doc = Jsoup.connect(CARD_PRICE_GUIDE + s).get();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-
-							if (doc != null) {
-								for (Element tr : doc.select("table").get(2)
-										.select("tr")) {
-									temp.put(tr.select("td").get(0).text()
-											.replace("\u00a0", "")
-											.toLowerCase(), s.toLowerCase());
-								}
-
-							} else {
-								sub.onNext(null);
-								if (!sub.isUnsubscribed())
-									sub.onCompleted();
-							}
-						}
-
-						sub.onNext(temp);
-						if (!sub.isUnsubscribed())
-							sub.onCompleted();
-					}
-				});
-	}
 	
-	/**
-	 * Get all expansion names
-	 * @return an ArrayList<String> of expansion names
-	 */
-	public Observable<ArrayList<String>> getAllExpansionNames() {
+	private Observable<HashMap<String, String>> matchCardsWithSetsLambdas(
+			ArrayList<String> expos) {
+		return Observable.create(subscriber -> {
+
+			Document doc = null;
+			HashMap<String, String> temp = new HashMap<String, String>();
+
+			for (String s : expos) {
+
+				try {
+					doc = Jsoup.connect(CARD_PRICE_GUIDE + s).get();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			if (doc != null) {
+				Elements table = doc.select("table").get(2).select("tr");
+
+				for (Element tr : table) {
+
+					temp.put(tr.select("td").get(0).text()
+							.replace("\u00a0", "").toLowerCase(),
+							s.toLowerCase());
+				}
+			} else {
+				subscriber.onNext(null);
+				if (!subscriber.isUnsubscribed())
+					subscriber.onCompleted();
+			}
+		}
+
+		subscriber.onNext(temp);
+		if (!subscriber.isUnsubscribed())
+			subscriber.onCompleted();
+	})	;
+	}
+
+	private Observable<ArrayList<String>> getAllExpansionNames() {
 		return Observable
 				.create(new Observable.OnSubscribe<ArrayList<String>>() {
-					
+
 					ArrayList<String> temp;
 					Document doc;
 
 					@Override
 					public void call(Subscriber<? super ArrayList<String>> sub) {
-						
+
 						temp = new ArrayList<String>();
 						doc = null;
 
@@ -206,7 +151,7 @@ public class CardPricer {
 									temp.add(link.text());
 								}
 							}
-							
+
 							sub.onNext(temp);
 							if (!sub.isUnsubscribed())
 								sub.onCompleted();
@@ -217,6 +162,5 @@ public class CardPricer {
 						}
 					}
 				});
-
 	}
 }

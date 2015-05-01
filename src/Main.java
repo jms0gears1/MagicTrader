@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-import rx.Subscriber;
+import rx.Observable;
 import rx.schedulers.Schedulers;
 
 public class Main {
@@ -12,6 +12,7 @@ public class Main {
 	private String[] commands = { "add", "remove", "print", "find white",
 			"find blue", "find black", "find red", "find green", "exit",
 			"help", "price" };
+	
 
 	public static void main(String[] args) {
 		Main main = new Main();
@@ -32,41 +33,71 @@ public class Main {
 			switch (selectCommand(cmd)) {
 
 			case 0:
-				CardFactory.getCard(getAfterCommand(cmd, commands[0]))
-						.observeOn(Schedulers.newThread())
-						.subscribe(new AddSubscriber());
+					CardFactory.getCard(getAfterCommand(cmd, commands[0]))
+					.observeOn(Schedulers.newThread())
+					.flatMap(cardsWithNoPrice -> pricer.getPrice(cardsWithNoPrice))
+					.subscribe(cardsWithPrice -> collection.addCard(cardsWithPrice));
 				break;
 			case 1:
-				CardFactory.getCard(getAfterCommand(cmd, commands[1]))
-						.observeOn(Schedulers.newThread())
-						.subscribe(new RemoveSubscriber());
+					CardFactory.getCard(getAfterCommand(cmd, commands[1]))
+					.observeOn(Schedulers.newThread())
+					.subscribe(card -> collection.removeCard(card));
 				break;
 			case 2:
-				collection.printCollection();
+					collection.printCollection();
 				break;
 			case 3:
+					//find white
+					getColor(ManaSymbol.WHITE);	
 				break;
 			case 4:
+					//find blue
+					getColor(ManaSymbol.BLUE);	
 				break;
 			case 5:
+					//find black
+					getColor(ManaSymbol.BLACK);	
 				break;
 			case 6:
+					//find red
+					getColor(ManaSymbol.RED);	
 				break;
 			case 7:
+					//find green
+					getColor(ManaSymbol.GREEN);	
 				break;
 			case 8:
-				System.exit(0);
+					System.exit(0);
 				break;
 			case 9:
-				help();
+					help();
 				break;
 			case 10:
-				collection.priceCollection();
+					collection.priceCollection();
 				break;
 			default:
 				break;
 			}
 		}
+	}
+	
+	public enum ManaSymbol{
+		WHITE("W"), BLUE("U"), BLACK("B"), RED("R"), GREEN("G");
+
+		private String val;
+		private ManaSymbol(String val){
+			this.val = val;
+		}
+		
+		public String toString(){
+			return this.val;
+		}
+	}
+	
+	public void getColor(ManaSymbol color){
+		Observable.from(collection.getCollection())
+		.filter(card -> {return card.getMana_cost().contains(color.toString());})
+		.subscribe(whiteCard -> {System.out.println(whiteCard.getName());});
 	}
 
 	public int selectCommand(String cmd) {
@@ -91,63 +122,5 @@ public class Main {
 	public void help() {
 		for (String s : commands)
 			System.out.println(s);
-	}
-
-	private class PriceSubscriber extends Subscriber<Card> {
-
-		@Override
-		public void onCompleted() {
-			this.unsubscribe();
-		}
-
-		@Override
-		public void onError(Throwable arg0) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void onNext(Card card) {
-			collection.addCard(card);
-		}
-
-	}
-
-	private class AddSubscriber extends Subscriber<Card> {
-
-		@Override
-		public void onCompleted() {
-			this.unsubscribe();
-		}
-
-		@Override
-		public void onError(Throwable arg0) {
-		}
-
-		@Override
-		public void onNext(Card card) {
-			if (card != null)
-				pricer.getPrice(card).subscribe(new PriceSubscriber());
-		}
-
-	}
-
-	private class RemoveSubscriber extends Subscriber<Card> {
-
-		@Override
-		public void onCompleted() {
-			this.unsubscribe();
-		}
-
-		@Override
-		public void onError(Throwable arg0) {
-		}
-
-		@Override
-		public void onNext(Card card) {
-			if (card != null)
-				collection.removeCard(card);
-		}
-
 	}
 }
